@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
+import { useDebounce } from "react-use";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -20,8 +21,11 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const fetchMovies = async (query = '') => {
+  useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm])
+
+  const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
     try {
@@ -48,13 +52,13 @@ const App = () => {
       console.log(`Error fething movies: ${error}`);
       setErrorMessage("Error fething movies. Please try again later.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMovies(searchTerm);
-  }, [searchTerm]);
+    fetchMovies(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   return (
     <main>
@@ -74,13 +78,13 @@ const App = () => {
           <h2 className="mt-10">All Movies</h2>
 
           {isLoading ? (
-            <Spinner/> 
+            <Spinner />
           ) : errorMessage ? (
             <p className="text-red-500">{errorMessage}</p>
           ) : (
             <ul>
               {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie}/>
+                <MovieCard key={movie.id} movie={movie} />
               ))}
             </ul>
           )}
