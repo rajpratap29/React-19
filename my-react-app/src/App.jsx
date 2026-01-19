@@ -27,9 +27,46 @@ const App = () => {
 
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
 
+  // const fetchMovies = async (query = "") => {
+  //   setIsLoading(true);
+  //   setErrorMessage("");
+  //   try {
+  //     const endpoint = query
+  //       ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(
+  //           query
+  //         )}&include_adult=false`
+  //       : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc&include_adult=false`;
+
+  //     const response = await fetch(endpoint, API_OPTIONS);
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch movies");
+  //     }
+
+  //     const data = await response.json();
+
+  //     if (data.response == "False") {
+  //       setErrorMessage(data.error || "Failed to fetch movies");
+  //       setMovieList([]);
+  //       return;
+  //     }
+
+  //     setMovieList(data.results || []);
+  //     if (query && data.results.length > 0) {
+  //       await updateSearchCount(query, data.results[0]);
+  //     }
+  //   } catch (error) {
+  //     console.log(`Error fething movies: ${error}`);
+  //     setErrorMessage("Error fething movies. Please try again later.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
+
     try {
       const endpoint = query
         ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(
@@ -45,23 +82,25 @@ const App = () => {
 
       const data = await response.json();
 
-      if (data.response == "False") {
-        setErrorMessage(data.error || "Failed to fetch movies");
+      if (!data || !Array.isArray(data.results)) {
         setMovieList([]);
         return;
       }
 
-      setMovieList(data.results || []);
+      setMovieList(data.results);
+
+      // 🔥 fire-and-forget (do not await)
       if (query && data.results.length > 0) {
-        await updateSearchCount(query, data.results[0]);
+        updateSearchCount(query, data.results[0]);
       }
     } catch (error) {
-      console.log(`Error fething movies: ${error}`);
-      setErrorMessage("Error fething movies. Please try again later.");
+      console.log(error);
+      setErrorMessage("Error fetching movies. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const loadTrendingMovies = async () => {
     try {
@@ -74,7 +113,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchMovies(debouncedSearchTerm);
+    if (debouncedSearchTerm.trim() !== "") {
+      fetchMovies(debouncedSearchTerm);
+    } else {
+      fetchMovies();
+    }
   }, [debouncedSearchTerm]);
 
   useEffect(() => {
