@@ -35,7 +35,7 @@ const App = () => {
         ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(
             query
           )}&include_adult=false`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc&include_adult=false`;
 
       const response = await fetch(endpoint, API_OPTIONS);
 
